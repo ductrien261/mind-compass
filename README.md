@@ -8,6 +8,13 @@
 
 <br/>
 
+<a href="https://mind-compass-five.vercel.app/" target="_blank">
+  <img src="https://img.shields.io/badge/TRY%20IT%20LIVE-MindCompass%20Web-blue?style=for-the-badge&logo=vercel&logoColor=white&color=000000" alt="Try MindCompass Live" />
+</a>
+
+<br/>
+<br/>
+
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Django](https://img.shields.io/badge/Django-4.x-092E20?style=for-the-badge&logo=django&logoColor=white)](https://djangoproject.com)
 [![Next.js](https://img.shields.io/badge/Next.js-15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
