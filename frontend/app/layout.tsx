@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MindCompass — Đánh giá Sức khỏe Tâm thần",
+  title: "MindCompass - Đánh giá Sức khỏe Tâm thần",
   description: "Hệ chuyên gia đánh giá sức khỏe tâm thần dựa trên thang đo DASS-42 và Logic Mờ",
 };
 
