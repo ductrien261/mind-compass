@@ -1,0 +1,36 @@
+# render.yaml — Render.com deployment config
+# Đặt file này tại ROOT của repo (mindcompass/render.yaml)
+# Render sẽ tự detect và deploy theo config này
+
+services:
+  - type: web
+    name: mindcompass-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+
+    #  Build
+    buildFilter:
+      paths:
+        - backend/**
+
+    #  Environment Variables
+    envVars:
+      - key: DEBUG
+        value: "False"
+
+      - key: SECRET_KEY
+        generateValue: true          # Render tự sinh ngẫu nhiên
+
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost"
+
+      # Set giá trị này SAU KHI biết URL của Vercel frontend
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://your-app.vercel.app,http://localhost:3000"
+
+    #  Health check
+    healthCheckPath: /api/health/
+
+    #  Auto deploy khi push lên main
+    autoDeploy: true

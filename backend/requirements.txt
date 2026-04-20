@@ -1,0 +1,13 @@
+asgiref==3.11.1
+Django==5.2.13
+django-cors-headers==4.9.0
+djangorestframework==3.17.1
+gunicorn==21.2.0
+networkx==3.6.1
+numpy==2.4.4
+packaging==26.1
+pyswip==0.3.3
+scikit-fuzzy==0.5.0
+scipy==1.17.1
+sqlparse==0.5.5
+tzdata==2026.1

@@ -44,11 +44,11 @@
 | Tính năng | Mô tả |
 |-----------|-------|
 | 🔍 **Sàng lọc thông minh** | Chỉ hỏi 6 câu ban đầu, tự động bỏ qua chiều nào không có nguy cơ |
-| 🌀 **Fuzzy Logic** | Gaussian Membership Function + Centroid Defuzzification — tính mức độ liên tục thay vì rời rạc |
+| 🌀 **Fuzzy Logic** | Gaussian Membership Function + Centroid Defuzzification - tính mức độ liên tục thay vì rời rạc |
 | 🔗 **Forward Chaining (Prolog)** | Từ điểm số Fuzzy → suy diễn hồ sơ tâm lý nghi ngờ |
 | ↩️ **Backward Chaining (Prolog)** | SWI-Prolog `verify_diagnosis/1` xác nhận hoặc bác bỏ hồ sơ bằng luật tri thức |
 | 🇻🇳 **Giao diện tiếng Việt** | Câu hỏi, kết quả và lời khuyên hoàn toàn bằng tiếng Việt |
-| 📡 **REST API** | Django REST Framework — dễ tích hợp |
+| 📡 **REST API** | Django REST Framework - dễ tích hợp |
 | ⚡ **Real-time UX** | Next.js 15 + animations mượt mà, 7 bước đánh giá có progress bar |
 
 ---
@@ -453,26 +453,3 @@ verify_diagnosis(pure_depression) :-
 | **Geist Font** | Font hỗ trợ tiếng Việt |
 | **CSS Animations** | Micro-interactions |
 
----
-
-## 📖 Tài liệu tham khảo
-
-- Lovibond, S.H. & Lovibond, P.F. (1995). *Manual for the Depression Anxiety Stress Scales*. Psychology Foundation of Australia.
-- Sheen, M. & Antony, M.M. (2016). DASS-42 Clinical Interpretation Guidelines.
-- Russell, S. & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach*, 4th Edition.
-- Zadeh, L.A. (1965). Fuzzy Sets. *Information and Control*, 8(3), 338–353.
-
----
-
-## 👤 Tác giả
-
-**Nguyễn Đức Triển** — VKU (Vietnam-Korea University of Information and Communication Technology)  
-Môn học: Hệ Chuyên Gia · Học kỳ 6 · 2025–2026
-
----
-
-<div align="center">
-
-*MindCompass — Định hướng bạn trên con đường sức khỏe tâm thần* 🧭
-
-</div>
