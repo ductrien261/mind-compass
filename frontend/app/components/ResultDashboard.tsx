@@ -58,7 +58,7 @@ export default function ResultDashboard({ result }: Props) {
     const profileLabel = PROFILE_VI[result.profile] ?? result.profile;
 
     // Lời khuyên chuyên gia (từ backward chaining details)
-    const evidence = result.confirm_detail
+    const evidence = (result.confirm_detail || [])
         .filter(d => d.answer === "yes")
         .map(d => d.text)
         .slice(0, 3);

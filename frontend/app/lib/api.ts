@@ -1,3 +1,5 @@
+import { BackwardQuestion } from "./questions";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export interface ScreeningResponse {
@@ -23,7 +25,7 @@ export interface FuzzyResponse {
     phase: "fuzzy_done";
     dimensions: Record<string, DimensionResult>;
     profile: string;
-    backward_questions: { key: string; text: string }[];
+    backward_questions: BackwardQuestion[];
     needs_backward: boolean;
 }
 
@@ -61,6 +63,6 @@ export const apiFuzzyAnalysis = (answers: Record<number, number>, screening: Scr
 
 export const apiBackwardChaining = (
     profile: string,
-    known_answers: Record<string, string>,
+    known_answers: Record<string, string | string[]>,
     fuzzy_result: FuzzyResponse
 ) => post<FinalResult>("backward-chaining", { profile, known_answers, fuzzy_result });

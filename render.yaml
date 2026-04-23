@@ -1,7 +1,3 @@
-# render.yaml — Render.com deployment config
-# Đặt file này tại ROOT của repo (mindcompass/render.yaml)
-# Render sẽ tự detect và deploy theo config này
-
 services:
   - type: web
     name: mindcompass-backend

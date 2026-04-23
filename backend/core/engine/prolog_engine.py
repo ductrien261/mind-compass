@@ -65,7 +65,7 @@ def _init_prolog():
         PROLOG_AVAILABLE = True
         logger.info("[PROLOG] SWI-Prolog initialized via pyswip")
     except ImportError:
-        logger.warning("[PROLOG] ⚠ pyswip not installed. Install: pip install pyswip")
+        logger.warning("[PROLOG] ⚠ pyswip not installed.")
         logger.warning("[PROLOG] Falling back to Python implementation.")
     except Exception as e:
         logger.warning(f"[PROLOG] ⚠ Could not initialize Prolog: {e}")
@@ -84,7 +84,8 @@ def _retract_known():
             pass
 
 
-#  Hằng số DASS-42
+# Hằng số DASS-42
+
 SCREENING_CFG = {
     "depression": {"q1": 21, "q2": 10, "threshold": 1.5},
     "anxiety":    {"q1": 28, "q2":  7, "threshold": 1.5},
@@ -155,65 +156,233 @@ PROFILE_ADVICE = {
     "low_risk":             "MỨC ĐỘ AN TOÀN: Không có dấu hiệu nào đáng lo ngại. Sức khỏe tinh thần của bạn hiện tại rất ổn định. Hãy tiếp tục duy trì lối sống lành mạnh, ngủ đủ giấc và vận động thể chất đều đặn nhé.",
 }
 
-BACKWARD_QUESTIONS = {
-    # pure_depression (MDD)
-    "a1":  "Bạn có cảm thấy buồn, trống rỗng hoặc tuyệt vọng gần như cả ngày, mỗi ngày không?",
-    "a2":  "Bạn có mất hứng thú hoặc niềm vui với hầu hết hoạt động từng yêu thích không?",
-    "a3":  "Bạn có thay đổi cân nặng rõ rệt (>5%) hoặc thay đổi cảm giác thèm ăn không?",
-    "a4":  "Bạn có bị mất ngủ hoặc ngủ quá nhiều gần như mỗi ngày không?",
-    # gad_stress_dominant
-    "n1":  "Bạn có lo lắng thái quá về nhiều vấn đề khác nhau liên tục trong hơn 6 tháng qua không?",
-    "n2":  "Những lo lắng này có xuất phát từ một sự kiện cụ thể không? (như mất người thân, bệnh tật...)",
-    "n3":  "Sự lo âu có đi kèm căng cơ, mệt mỏi, khó tập trung hoặc mất ngủ không?",
-    "n4":  "Bạn có cảm thấy khó hoặc không thể ngừng lo lắng dù bản thân muốn không?",
-    # panic_disorder
-    "d1a": "Bạn có từng đột ngột bị tim đập mạnh, khó thở, vã mồ hôi hoặc run rẩy không rõ nguyên nhân không?",
-    "d1b": "Những cơn đó có ập đến bất ngờ và đạt đỉnh điểm chỉ trong vài phút không?",
-    "d2":  "Sau các cơn đó, bạn có lo lắng kéo dài rằng chúng sẽ tái phát không?",
-    "d4":  "Bạn có né tránh những nơi hoặc tình huống cụ thể vì sợ cơn hoảng loạn tái phát không?",
-    # social_anxiety
-    "f1":  "Bạn có sợ hãi rõ rệt khi phải xuất hiện trước đám đông hoặc tương tác xã hội không?",
-    "f2":  "Nỗi sợ này có liên quan đến việc bị người khác đánh giá tiêu cực không?",
-    "f3":  "Bạn có cảm thấy lo âu gần như ngay lập tức khi gặp tình huống xã hội đó không?",
-    "f4":  "Bạn có né tránh các tình huống xã hội đó, hoặc chịu đựng với cảm giác rất khó chịu không?",
-    "f5":  "Nỗi sợ này có không cân xứng với mức nguy hiểm thực tế của tình huống không?",
-    "f6":  "Nó có ảnh hưởng rõ đến công việc, học tập hoặc các mối quan hệ của bạn không?",
+# Backward Chaining Questions
+#
+# type: "yesno"       → render yes/no buttons
+# type: "multiselect" → render checkbox list, đếm số lượng chọn
+#
+# Với multiselect:
+#   - "options": danh sách lựa chọn
+#   - "min_count": ngưỡng tối thiểu để tính là "pass" (đủ triệu chứng)
+#   - "a1_counts_one": True nếu câu A1=yes đã đóng góp 1 vào tổng (MDD đặc biệt)
+#
+# Logic luồng theo từng profile :
+#   MDD:   A1(yn) → if no → A2(yn) → if A1 or A2 = yes → A3(multi,≥5) → A4(yn)
+#   GAD:   N1(yn) → N2(yn) → if N2=no (không kiểm soát được) → N3(multi,≥3) → N4(yn)
+#   Panic: D1a(yn) → D1b(yn) → D2(yn) → D4(multi,≥4)
+#   Social: F1→F2→F3→F4→F5→F6 (tất cả yes/no)
+
+BACKWARD_QUESTIONS: Dict[str, Dict] = {
+
+    # MDD
+    "a1": {
+        "key": "a1",
+        "type": "yesno",
+        "text": "Bạn có từng cảm thấy trầm cảm, buồn bã hoặc tuyệt vọng gần như cả ngày, hầu hết mỗi ngày, trong ít nhất 2 tuần liên tiếp không?",
+    },
+    "a2": {
+        "key": "a2",
+        "type": "yesno",
+        "text": "Bạn có từng mất hứng thú hoặc niềm vui với hầu hết mọi thứ bạn từng yêu thích, gần như cả ngày, hầu hết mỗi ngày, trong ít nhất 2 tuần không?",
+    },
+    "a3": {
+        "key": "a3",
+        "type": "multiselect",
+        "text": "Trong giai đoạn đó, bạn có gặp các triệu chứng nào sau đây không? (Chọn tất cả các triệu chứng bạn gặp)",
+        "options": [
+            {"value": "a3_a", "label": "Thay đổi cân nặng hoặc ăn uống rõ rệt (tăng hoặc giảm > 5% trong 1 tháng)"},
+            {"value": "a3_b", "label": "Mất ngủ hoặc ngủ quá nhiều gần như mỗi ngày"},
+            {"value": "a3_c", "label": "Vận động chậm chạp hoặc bồn chồn, bứt rứt rõ rệt đến mức người khác nhận ra"},
+            {"value": "a3_d", "label": "Mệt mỏi hoặc mất năng lượng gần như mỗi ngày"},
+            {"value": "a3_e", "label": "Cảm thấy vô dụng hoặc tội lỗi quá mức, gần như mỗi ngày"},
+            {"value": "a3_f", "label": "Khó tập trung, suy nghĩ hoặc đưa ra quyết định, gần như mỗi ngày"},
+            {"value": "a3_g", "label": "Thường xuyên nghĩ đến cái chết, có ý nghĩ tự tử hoặc đã lên kế hoạch/thực hiện"},
+        ],
+        "min_count": 4, 
+    },
+    "a4": {
+        "key": "a4",
+        "type": "yesno",
+        "text": "Những triệu chứng này có gây ra khó khăn đáng kể hoặc ảnh hưởng rõ rệt đến công việc, học tập, các mối quan hệ hoặc cuộc sống hàng ngày của bạn không?",
+    },
+
+    # GAD
+    "n1": {
+        "key": "n1",
+        "type": "yesno",
+        "text": "Trong 6 tháng qua, bạn có lo lắng quá mức về nhiều vấn đề khác nhau trong cuộc sống (công việc, gia đình, sức khỏe, tài chính...) hầu hết các ngày không?",
+    },
+    "n2": {
+        "key": "n2",
+        "type": "yesno",
+        "text": "Bạn có thể kiểm soát được những lo lắng đó, tức là có thể dừng lo lắng khi muốn không?",
+        "stop_if": "yes", 
+        "stop_reason": "Có thể kiểm soát lo lắng → không đủ tiêu chí GAD",
+    },
+    "n3": {
+        "key": "n3",
+        "type": "multiselect",
+        "text": "Khi lo lắng trong 6 tháng qua, bạn có gặp các triệu chứng nào sau đây không? (Chọn tất cả các triệu chứng bạn gặp)",
+        "options": [
+            {"value": "n3_a", "label": "Bồn chồn, bứt rứt hoặc cảm giác căng thẳng, dễ bị giật mình"},
+            {"value": "n3_b", "label": "Căng cơ bắp"},
+            {"value": "n3_c", "label": "Dễ mệt mỏi"},
+            {"value": "n3_d", "label": "Khó tập trung hoặc đầu óc trống rỗng"},
+            {"value": "n3_e", "label": "Cáu kỉnh, dễ nổi cáu"},
+            {"value": "n3_f", "label": "Khó ngủ (khó đi vào giấc, hay thức giữa đêm, hoặc ngủ không sâu giấc)"},
+        ],
+        "min_count": 3, 
+    },
+    "n4": {
+        "key": "n4",
+        "type": "yesno",
+        "text": "Những lo lắng và triệu chứng này có gây ra khó khăn đáng kể trong công việc, các mối quan hệ hoặc cuộc sống hàng ngày, hoặc khiến bạn đau khổ rõ rệt không?",
+    },
+
+    # Panic Disorder
+    "d1a": {
+        "key": "d1a",
+        "type": "yesno",
+        "text": "Bạn có từng trải qua những cơn lo âu đột ngột, dữ dội — cảm giác sợ hãi, khó chịu hoặc bất an mà hầu hết người khác sẽ không cảm thấy như vậy trong tình huống đó — và điều này xảy ra nhiều hơn một lần không?",
+    },
+    "d1b": {
+        "key": "d1b",
+        "type": "yesno",
+        "text": "Những cơn đó có đạt đến đỉnh điểm trong vòng 10 phút kể từ khi bắt đầu không?",
+    },
+    "d2": {
+        "key": "d2",
+        "type": "yesno",
+        "text": "Có ít nhất một cơn xuất hiện hoàn toàn bất ngờ, không có nguyên nhân hay tình huống kích hoạt rõ ràng không?",
+    },
+    "d4": {
+        "key": "d4",
+        "type": "multiselect",
+        "text": "Trong cơn tệ nhất bạn từng trải qua, bạn có gặp các triệu chứng nào sau đây không? (Chọn tất cả triệu chứng có trong cơn đó)",
+        "options": [
+            {"value": "d4_a", "label": "Tim đập nhanh, mạnh hoặc loạn nhịp"},
+            {"value": "d4_b", "label": "Đổ mồ hôi hoặc bàn tay ẩm"},
+            {"value": "d4_c", "label": "Run rẩy hoặc lắc"},
+            {"value": "d4_d", "label": "Khó thở, thở gấp hoặc cảm giác bị nghẹt thở"},
+            {"value": "d4_e", "label": "Cảm giác bị nghẹn ở cổ họng"},
+            {"value": "d4_f", "label": "Đau ngực, tức ngực hoặc khó chịu ở ngực"},
+            {"value": "d4_g", "label": "Buồn nôn, đau bụng hoặc tiêu chảy đột ngột"},
+            {"value": "d4_h", "label": "Chóng mặt, loạng choạng, nhẹ đầu hoặc sắp ngất"},
+            {"value": "d4_i", "label": "Người nóng bừng hoặc ớn lạnh"},
+            {"value": "d4_j", "label": "Tê bì hoặc ngứa ran ở các bộ phận cơ thể"},
+            {"value": "d4_k", "label": "Mọi thứ xung quanh trông lạ lẫm, không thực, hoặc cảm thấy tách rời khỏi bản thân"},
+            {"value": "d4_l", "label": "Sợ mất kiểm soát hoặc sắp hóa điên"},
+            {"value": "d4_m", "label": "Sợ chết"},
+        ],
+        "min_count": 4, 
+    },
+
+    # Social Anxiety
+    "f1": {
+        "key": "f1",
+        "type": "yesno",
+        "text": "Trong tháng vừa qua, bạn có cảm thấy sợ hãi rõ rệt hoặc lo lắng đáng kể khi bị người khác nhìn, trở thành tâm điểm chú ý, hoặc sợ bị xấu hổ, bẽ mặt hay bị từ chối trong các tình huống xã hội không? (Ví dụ: nói chuyện nhóm, ăn trước mặt người khác, phát biểu, gặp người mới...)",
+    },
+    "f2": {
+        "key": "f2",
+        "type": "yesno",
+        "text": "Các tình huống xã hội đó hầu như luôn gây ra nỗi sợ hoặc lo âu cho bạn không?",
+    },
+    "f3": {
+        "key": "f3",
+        "type": "yesno",
+        "text": "Bạn có né tránh các tình huống xã hội đó, hoặc phải chịu đựng chúng với cảm giác rất khó chịu, hay cần có người đi cùng mới dám đối mặt không?",
+    },
+    "f4": {
+        "key": "f4",
+        "type": "yesno",
+        "text": "Nỗi sợ này có vẻ quá mức so với mức độ nguy hiểm thực sự của tình huống không?",
+    },
+    "f5": {
+        "key": "f5",
+        "type": "yesno",
+        "text": "Tình trạng né tránh hoặc lo âu xã hội này đã kéo dài ít nhất 6 tháng không?",
+    },
+    "f6": {
+        "key": "f6",
+        "type": "yesno",
+        "text": "Những nỗi sợ này có gây ra khó khăn đáng kể hoặc ảnh hưởng rõ rệt đến công việc, học tập hoặc các mối quan hệ của bạn không?",
+    },
 }
 
-BACKWARD_FLOW = {
-    "pure_depression":     ["a1", "a2", "a3", "a4"],
-    "mdd_anxious_distress":["a1", "a2", "n1"],   
-    "gad_stress_dominant": ["n1", "n2", "n3", "n4"],
-    "panic_disorder":      ["d1a", "d1b", "d2", "d4"],
-    "social_anxiety":      ["f1", "f2", "f3", "f4", "f5", "f6"],
-    "maladaptive_crisis":  [],
-    "low_risk":            [],
+#  Backward Flow per profile 
+
+BACKWARD_FLOW: Dict[str, List[str]] = {
+    "pure_depression":      ["a1", "a2", "a3", "a4"],
+    "mdd_anxious_distress": ["a1", "a2", "a3", "a4", "n1"],
+    "gad_stress_dominant":  ["n1", "n2", "n3", "n4"],
+    "panic_disorder":       ["d1a", "d1b", "d2", "d4"],
+    "social_anxiety":       ["f1", "f2", "f3", "f4", "f5", "f6"],
+    "maladaptive_crisis":   [],
+    "low_risk":             [],
 }
 
-# Ngưỡng xác nhận (chỉ dùng khi Python fallback)
-CONFIRM_THRESHOLD = {
-    "pure_depression":     3,
-    "mdd_anxious_distress":2,
-    "gad_stress_dominant": 3,
-    "panic_disorder":      2,
-    "social_anxiety":      4,
-    "maladaptive_crisis":  0,
-    "low_risk":            0,
+CONFIRM_THRESHOLD: Dict[str, int] = {
+    "pure_depression":      3,   # a1/a2 + a3_pass + a4
+    "mdd_anxious_distress": 3,
+    "gad_stress_dominant":  3,   # n1 + n3_pass + n4
+    "panic_disorder":       3,   # d1a + d1b + d2 + d4_pass
+    "social_anxiety":       4,   # f1..f6 ≥ 4
+    "maladaptive_crisis":   0,
+    "low_risk":             0,
 }
 
 
-#  Hàm toán học 
+#  Helper: build backward question list for API response
+
+def build_backward_questions(profile: str) -> List[Dict]:
+    """
+    Trả về list câu hỏi backward cho profile, bao gồm đầy đủ metadata
+    để frontend render đúng UI (yesno vs multiselect).
+    """
+    flow = BACKWARD_FLOW.get(profile, [])
+    result = []
+    for key in flow:
+        q = BACKWARD_QUESTIONS.get(key)
+        if q:
+            result.append(q)
+    return result
+
+
+# Python fallback: evaluate multiselect answers
+
+def _eval_multiselect(key: str, selected: List[str], known_answers: Dict[str, Any]) -> bool:
+    """
+    Trả về True nếu số triệu chứng được chọn đạt ngưỡng.
+    Với A3 (MDD): cộng thêm 1 nếu A1=yes (A1 đã là 1 trong 9 tiêu chí DSM).
+    """
+    q = BACKWARD_QUESTIONS[key]
+    min_count = q.get("min_count", 1)
+    count = len(selected)
+
+    if key == "a3":
+        # A1 = yes đã đóng góp 1 triệu chứng (depressed mood)
+        if known_answers.get("a1") == "yes":
+            count += 1
+        # A2 = yes (anhedonia) cũng đóng góp 1 nếu A1=no
+        elif known_answers.get("a2") == "yes":
+            count += 1
+
+    passed = count >= min_count
+    logger.info(f"[BACKWARD] multiselect {key}: {count} selected (need ≥{min_count}) → {'PASS' if passed else 'FAIL'}")
+    return passed
+
+
+#  Hàm toán học
+
 def _gaussmf(x: float, mean: float, sigma: float) -> float:
     """Gaussian membership function."""
     return math.exp(-((x - mean) ** 2) / (2 * sigma ** 2))
 
 
-#  Bước 1: Prolog Screening 
+# Bước 1: Prolog Screening
+
 def _prolog_screening(dim: str, answers: Dict[int, int]) -> Dict[str, Any]:
-    """
-    Kiểm tra 2 câu sàng lọc của mỗi chiều.
-    Trả về: { action: 'skip'|'ask_more', q1, q2, v1, v2, threshold, reason }
-    """
     cfg = SCREENING_CFG[dim]
     q1, q2, thr = cfg["q1"], cfg["q2"], cfg["threshold"]
     v1 = answers.get(q1, 0)
@@ -227,16 +396,12 @@ def _prolog_screening(dim: str, answers: Dict[int, int]) -> Dict[str, Any]:
         reason = f"Cần đánh giá thêm: Q{q1}={v1} hoặc Q{q2}={v2} vượt ngưỡng {thr}"
 
     logger.info(f"[SCREENING] {dim}: {action} | {reason}")
-    print(f"\n[{dim.upper()} — Prolog Screening]")
-    print(f"   Q{q1}={v1}, Q{q2}={v2}  | threshold={thr} → {action.upper()}")
-    print(f"   Lý do: {reason}")
-
     return {"action": action, "q1": q1, "q2": q2, "v1": v1, "v2": v2, "threshold": thr, "reason": reason}
 
 
-#  Bước 2: Tính điểm 
+#  Bước 2: Tính điểm
+
 def _compute_score(dim: str, answers: Dict[int, int], action: str, v1: int, v2: int) -> Dict[str, Any]:
-    """Tính tổng điểm cho từng chiều."""
     all_qs = DIM_QUESTIONS[dim]
 
     if action == "ask_more":
@@ -248,39 +413,21 @@ def _compute_score(dim: str, answers: Dict[int, int], action: str, v1: int, v2: 
         detail = {}
         method = f"Nội suy từ 2 câu: ({v1}+{v2})/2 × 14"
 
-    print(f"   BƯỚC 2 — Tính điểm ({method}): {total}/42")
-    if detail:
-        items = [f"Q{q}={v}" for q, v in detail.items()]
-        print(f"   Chi tiết: {' | '.join(items)}")
-
     return {"total": total, "detail": detail, "method": method}
 
 
-#  Bước 3 & 4: Fuzzy Logic 
-def _fuzzy_evaluate(dim: str, total: int) -> Dict[str, Any]:
-    """Fuzzification (Gaussian MF) + Defuzzification (Centroid)."""
-    params = FUZZY_PARAMS[dim]
+# Bước 3 & 4: Fuzzy Logic
 
-    print(f"\n   BƯỚC 3 — Fuzzification (Gaussian MF):")
+def _fuzzy_evaluate(dim: str, total: int) -> Dict[str, Any]:
+    params = FUZZY_PARAMS[dim]
     memberships = []
     for p in params:
         mu = _gaussmf(total, p["mean"], p["sigma"])
-        flag = " ◄" if mu > 0.001 else ""
-        formula = f"exp(-(({total}-{p['mean']})² / (2×{p['sigma']}²)))"
-        print(f"   {p['label']:<20} | {formula:<42} | μ={mu:.3f}{flag}")
         memberships.append({"label": p["label"], "idx": p["idx"], "mu": mu})
 
-    # Centroid defuzzification
     numerator   = sum(m["mu"] * m["idx"] for m in memberships)
     denominator = sum(m["mu"] for m in memberships)
     crisp = (numerator / denominator) if denominator > 0 else 0.0
-
-    print(f"\n   BƯỚC 4 — Defuzzification (Centroid):")
-    parts = [f"({m['mu']:.3f}×{m['idx']})" for m in memberships]
-    print(f"   Tử số = {' + '.join(parts)}")
-    print(f"          = {numerator:.3f}")
-    print(f"   Mẫu số = {denominator:.3f}")
-    print(f"   → CRISP = {crisp:.4f} (thang 0-4)")
 
     if   crisp < 0.5: label_idx = 0
     elif crisp < 1.5: label_idx = 1
@@ -289,7 +436,6 @@ def _fuzzy_evaluate(dim: str, total: int) -> Dict[str, Any]:
     else:             label_idx = 4
 
     label = ["Normal", "Mild", "Moderate", "Severe", "Extremely Severe"][label_idx]
-    print(f"   → Kết luận: {label.upper()} (label_idx={label_idx})")
 
     return {
         "fuzzy_value": round(crisp, 4),
@@ -299,122 +445,121 @@ def _fuzzy_evaluate(dim: str, total: int) -> Dict[str, Any]:
     }
 
 
-# Bước 6: Forward Chaining 
+# Bước 5: Forward Chaining
+
 def _forward_chaining(d10: int, a10: int, s10: int) -> str:
-    """
-    Forward Chaining — nhận diện profile nghi ngờ từ D/A/S fuzzy scores.
-    Ưu tiên: SWI-Prolog → Python fallback.
-    Query Prolog: candidate_profile(Profile, D10, A10, S10)
-    """
-    print(f"\n[BƯỚC 6 — Forward Chaining] D×10={d10}, A×10={a10}, S×10={s10}")
+    logger.info(f"[FORWARD] D×10={d10}, A×10={a10}, S×10={s10}")
 
     if PROLOG_AVAILABLE and _prolog_instance is not None:
-        print("   → Engine: SWI-Prolog (pyswip)")
         with _prolog_lock:
             try:
                 query = f"candidate_profile(Profile, {d10}, {a10}, {s10})"
-                print(f"   → Query: {query}")
                 results = list(_prolog_instance.query(query))
                 if results:
-                    profile = str(results[0]["Profile"])
-                    print(f"   → Prolog → Profile: {profile.upper()}")
-                    return profile
-                else:
-                    print("   → Prolog: Không match rule nào → xử lý fallback")
+                    return str(results[0]["Profile"])
             except Exception as e:
                 logger.warning(f"[PROLOG] Forward chaining error: {e}. Using Python fallback.")
 
-    print("   → Engine: Python fallback")
+    # Python fallback
     if d10 >= 30 and a10 >= 30 and s10 >= 30:
-        profile = "maladaptive_crisis"
+        return "maladaptive_crisis"
+    elif d10 >= 25 and a10 >= 25:
+        return "mdd_anxious_distress"
     elif a10 >= 25 and d10 <= 15 and s10 <= 20:
-        profile = "panic_disorder"
+        return "panic_disorder"
     elif s10 >= 25 and d10 <= 15 and a10 <= 15:
-        profile = "gad_stress_dominant"
+        return "gad_stress_dominant"
     elif d10 >= 25 and a10 < 25 and s10 < 25:
-        profile = "pure_depression"
+        return "pure_depression"
     elif a10 >= 20 and s10 >= 20:
-        profile = "social_anxiety"
+        return "social_anxiety"
     elif d10 < 15 and a10 < 15 and s10 < 15:
-        profile = "low_risk"
+        return "low_risk"
     else:
         mx = max(d10, a10, s10)
-        if   mx == d10: profile = "pure_depression"
-        elif mx == a10: profile = "panic_disorder"
-        else:           profile = "gad_stress_dominant"
-
-    print(f"   → Python → Profile: {profile.upper()}")
-    return profile
+        if   mx == d10: return "pure_depression"
+        elif mx == a10: return "panic_disorder"
+        else:           return "gad_stress_dominant"
 
 
-# Bước 7: Backward Chaining Verification
-def _verify_diagnosis(profile: str, known_answers: Dict[str, str]) -> bool:
+# Bước 6: Backward Chaining Verification
+
+def _verify_diagnosis(profile: str, known_answers: Dict[str, Any]) -> bool:
     """
-    Backward Chaining — xác minh profile bằng SWI-Prolog.
+    Xác minh profile bằng Python logic (phản ánh đúng sơ đồ luồng).
 
-    Cơ chế:
-      1. assert known(Q, Answer) cho mỗi câu trả lời đã biết
-      2. query verify_diagnosis(Profile)
-      3. Prolog dùng luật ask_symptom/ask_symptom_no để kiểm tra
-      4. retractall(known(_, _)) để dọn dẹp
-
-    Fallback Python: đếm "yes" vs CONFIRM_THRESHOLD.
+    known_answers có thể chứa:
+      - "a1": "yes"/"no"
+      - "a3": ["a3_a", "a3_c", ...]   ← list các option được chọn
+      - "n3": ["n3_a", "n3_b", ...]
+      - "d4": ["d4_a", "d4_b", ...]
+      - "n2": "yes"/"no"
+      - v.v.
     """
     bw_flow = BACKWARD_FLOW.get(profile, [])
-
-    # Profiles không cần xác minh backward
-    if len(bw_flow) == 0:
-        print(f"   → Profile {profile.upper()} tự động xác nhận (không cần backward)")
+    if not bw_flow:
         return True
 
     if PROLOG_AVAILABLE and _prolog_instance is not None:
-        print(f"\n   → Engine: SWI-Prolog — xác minh verify_diagnosis({profile})")
         with _prolog_lock:
             try:
-                # Bước 1: Xóa sạch known facts cũ
                 _retract_known()
-
-                # Bước 2: Assert tất cả câu trả lời đã biết
                 for q, ans in known_answers.items():
-                    fact = f"known({q}, {ans})"
-                    _prolog_instance.assertz(fact)
-                    print(f"     assertz({fact})")
+                    if isinstance(ans, list):
+                        # multiselect: assert từng option được chọn
+                        for opt in ans:
+                            _prolog_instance.assertz(f"known({opt}, yes)")
+                        # assert tổng đếm
+                        _prolog_instance.assertz(f"known({q}_count, {len(ans)})")
+                    else:
+                        _prolog_instance.assertz(f"known({q}, {ans})")
 
-                # Bước 3: Query xác minh
-                query_str = f"verify_diagnosis({profile})"
-                print(f"   → Query: {query_str}")
-                results = list(_prolog_instance.query(query_str))
-                verified = len(results) > 0
-                status = "ĐÃ XÁC NHẬN ✓" if verified else "CHƯA ĐỦ TIÊU CHÍ ✗"
-                print(f"   → Prolog → {status}")
-                return verified
-
+                results = list(_prolog_instance.query(f"verify_diagnosis({profile})"))
+                return len(results) > 0
             except Exception as e:
-                logger.warning(f"[PROLOG] Backward chaining error: {e}. Using Python fallback.")
+                logger.warning(f"[PROLOG] Backward error: {e}. Using Python fallback.")
             finally:
-                # Bước 4: Dọn dẹp facts
                 _retract_known()
 
-    print(f"\n   → Engine: Python fallback — xác minh {profile.upper()}")
-    threshold = CONFIRM_THRESHOLD.get(profile, 0)
-    confirm_score = sum(1 for k in bw_flow if known_answers.get(k, "no") == "yes")
-    verified = confirm_score >= threshold
-    status = "ĐÃ XÁC NHẬN ✓" if verified else "CHƯA ĐỦ TIÊU CHÍ ✗"
-    print(f"   → Python → {confirm_score}/{len(bw_flow)} triệu chứng ≥ ngưỡng {threshold}: {status}")
-    return verified
+    def yn(key: str) -> bool:
+        return known_answers.get(key) == "yes"
 
+    def multi_pass(key: str) -> bool:
+        selected = known_answers.get(key, [])
+        if not isinstance(selected, list):
+            return False
+        return _eval_multiselect(key, selected, known_answers)
+
+    if profile in ("pure_depression", "mdd_anxious_distress"):
+        # A1 or A2 phải yes
+        a1_or_a2 = yn("a1") or yn("a2")
+        # A3: multi-select ≥ 5 tổng (a1/a2 đóng góp 1)
+        a3_ok = multi_pass("a3")
+        # A4: yes
+        a4_ok = yn("a4")
+        base = a1_or_a2 and a3_ok and a4_ok
+        if profile == "mdd_anxious_distress":
+            return base and yn("n1")
+        return base
+
+    elif profile == "gad_stress_dominant":
+        # N1 phải yes, N2 phải no (không kiểm soát được), N3 multi ≥ 3, N4 yes
+        return yn("n1") and not yn("n2") and multi_pass("n3") and yn("n4")
+
+    elif profile == "panic_disorder":
+        # D1a, D1b, D2 đều yes, D4 multi ≥ 4
+        return yn("d1a") and yn("d1b") and yn("d2") and multi_pass("d4")
+
+    elif profile == "social_anxiety":
+        # F1..F6 tất cả yes
+        return all(yn(f"f{i}") for i in range(1, 7))
+
+    return False
+
+
+# Public API
 
 def run_screening_phase(answers: Dict[int, int]) -> Dict[str, Any]:
-    """
-    Giai đoạn 1: Nhận 6 câu sàng lọc (2 câu × 3 chiều).
-    Trả về: quyết định skip/ask_more cho từng chiều + danh sách câu cần hỏi thêm.
-    """
-    print("\n" + "="*70)
-    print(f"{'HỆ CHUYÊN GIA — GIAI ĐOẠN 1: SÀNG LỌC':^70}")
-    print("="*70)
-    engine_status = "SWI-Prolog ✅" if PROLOG_AVAILABLE else "Python fallback ⚠"
-    print(f"   [Engine: {engine_status}]")
-
     result = {}
     questions_needed = []
 
@@ -429,7 +574,6 @@ def run_screening_phase(answers: Dict[int, int]) -> Dict[str, Any]:
         else:
             result[dim]["needs_full_questions"] = False
 
-    print(f"\n📋 Câu hỏi cần hỏi tiếp: {sorted(set(questions_needed))}")
     return {
         "phase": "screening_done",
         "screening": result,
@@ -438,14 +582,6 @@ def run_screening_phase(answers: Dict[int, int]) -> Dict[str, Any]:
 
 
 def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str, Any]:
-    """
-    Giai đoạn 2: Fuzzy Logic + Forward Chaining (Prolog).
-    Trả về: kết quả từng chiều + profile nghi ngờ + câu backward chaining.
-    """
-    print("\n" + "="*70)
-    print(f"{'HỆ CHUYÊN GIA — GIAI ĐOẠN 2: FUZZY + FORWARD CHAINING':^70}")
-    print("="*70)
-
     final = {}
     dim_labels = {
         "depression": "TRẦM CẢM (Depression)",
@@ -456,11 +592,8 @@ def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str
     for dim in ["depression", "anxiety", "stress"]:
         s = screening_result["screening"][dim]
         scr = s["screening"]
-        print(f"\n[{dim_labels[dim]}]")
-        print("-" * 70)
 
         if scr["action"] == "skip":
-            print(f"   => Bỏ qua (rủi ro thấp).")
             final[dim] = {
                 "screening_action": "skip",
                 "total_score": 0,
@@ -474,9 +607,7 @@ def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str
 
         score_res = _compute_score(dim, answers, scr["action"], scr["v1"], scr["v2"])
         fuzzy_res = _fuzzy_evaluate(dim, score_res["total"])
-
         advice = DIM_ADVICE[dim][fuzzy_res["label_idx"]]
-        print(f"\n   BƯỚC 5 — Lời khuyên: {advice}")
 
         final[dim] = {
             "screening_action": scr["action"],
@@ -488,31 +619,12 @@ def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str
             "memberships":      fuzzy_res["memberships"],
         }
 
-    # Forward Chaining
     d10 = round(final["depression"]["fuzzy_value"] * 10)
     a10 = round(final["anxiety"]["fuzzy_value"] * 10)
     s10 = round(final["stress"]["fuzzy_value"] * 10)
     profile = _forward_chaining(d10, a10, s10)
 
-    # Chuẩn bị câu hỏi backward chaining
-    bw_flow = BACKWARD_FLOW.get(profile, [])
-    bw_questions = [
-        {"key": k, "text": BACKWARD_QUESTIONS[k]}
-        for k in bw_flow
-        if k in BACKWARD_QUESTIONS
-    ]
-
-    print(f"\n[BƯỚC 7 — Backward Chaining cần hỏi: {[q['key'] for q in bw_questions]}]")
-
-    # In bảng tổng kết
-    print("\n" + "="*70)
-    print(f"{'TỔNG KẾT':^70}")
-    print("="*70)
-    print(f"  {'Chiều':<25} | {'Điểm':^6} | {'Fuzzy':^7} | Kết luận")
-    print("-" * 70)
-    for dim, label in dim_labels.items():
-        r = final[dim]
-        print(f"  {label:<25} | {r['total_score']:>3}/42 | {r['fuzzy_value']:.3f}  | {r['label'].upper()}")
+    bw_questions = build_backward_questions(profile)
 
     return {
         "phase": "fuzzy_done",
@@ -523,48 +635,18 @@ def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str
     }
 
 
-def run_backward_phase(profile: str, known_answers: Dict[str, str], fuzzy_result: Dict) -> Dict[str, Any]:
-    """
-    Giai đoạn 3: Backward Chaining (Prolog) → xác nhận profile cuối.
-    known_answers: { "a1": "yes", "a2": "no", "n1": "yes", ... }
-    """
-    print("\n" + "="*70)
-    print(f"{'HỆ CHUYÊN GIA — GIAI ĐOẠN 3: BACKWARD CHAINING':^70}")
-    print("="*70)
-    print(f"  Profile nghi ngờ: {profile.upper()}")
-
+def run_backward_phase(profile: str, known_answers: Dict[str, Any], fuzzy_result: Dict) -> Dict[str, Any]:
     bw_flow = BACKWARD_FLOW.get(profile, [])
-
-    # In chi tiết câu trả lời
-    detail = []
-    for k in bw_flow:
-        ans = known_answers.get(k, "no")
-        mark = "✓" if ans == "yes" else "✗"
-        text = BACKWARD_QUESTIONS.get(k, k)
-        detail.append({"key": k, "text": text, "answer": ans})
-        print(f"   [{mark}] {text}")
 
     verified = _verify_diagnosis(profile, known_answers)
     final_profile = profile if verified else "low_risk"
 
-    # Đếm confirm_score để hiển thị
-    confirm_score = sum(1 for k in bw_flow if known_answers.get(k, "no") == "yes")
-
-    engine_name = "SWI-Prolog" if PROLOG_AVAILABLE else "Python"
-    print(f"\n  → [{engine_name}] Xác nhận: {'ĐÃ XÁC NHẬN' if verified else 'CHƯA ĐỦ TIÊU CHÍ'} ({confirm_score}/{len(bw_flow)} triệu chứng)")
-    print(f"  → Profile cuối: {final_profile.upper()}")
-
     profile_adv = PROFILE_ADVICE.get(final_profile, PROFILE_ADVICE["low_risk"])
-    print(f"\n[KẾT LUẬN] {profile_adv}")
-    print("="*70)
 
     return {
         "phase":            "complete",
         "profile":          final_profile,
         "profile_verified": verified,
-        "confirm_score":    confirm_score,
-        "confirm_total":    len(bw_flow),
         "profile_advice":   profile_adv,
-        "confirm_detail":   detail,
         "dimensions":       fuzzy_result.get("dimensions", {}),
     }

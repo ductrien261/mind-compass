@@ -24,21 +24,6 @@
 
 ---
 
-## 📋 Mục lục
-
-- [✨ Tính năng nổi bật](#-tính-năng-nổi-bật)
-- [🏗️ Kiến trúc hệ thống](#️-kiến-trúc-hệ-thống)
-- [🔬 Luồng hoạt động](#-luồng-hoạt-động)
-- [📂 Cấu trúc dự án](#-cấu-trúc-dự-án)
-- [🚀 Cài đặt & Chạy](#-cài-đặt--chạy)
-- [🔌 API Reference](#-api-reference)
-- [🧠 Knowledge Base (Prolog)](#-knowledge-base-prolog)
-- [📊 Các hồ sơ tâm lý được nhận diện](#-các-hồ-sơ-tâm-lý-được-nhận-diện)
-- [📸 Giao diện](#-giao-diện)
-- [🛠️ Tech Stack](#️-tech-stack)
-
----
-
 ## ✨ Tính năng nổi bật
 
 | Tính năng | Mô tả |
