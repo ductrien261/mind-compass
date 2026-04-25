@@ -36,6 +36,7 @@ export interface FinalResult {
     confirm_score: number;
     confirm_total: number;
     profile_advice: string;
+    profile_confirmed: boolean;
     confirm_detail: { key: string; text: string; answer: string }[];
     dimensions: Record<string, DimensionResult>;
 }

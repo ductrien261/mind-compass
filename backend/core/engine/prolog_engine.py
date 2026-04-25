@@ -20,6 +20,10 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
 
 # Đường dẫn Knowledge Base
 _KB_SRC = Path(__file__).parent.parent / "knowledge_base" / "rules.pl"
@@ -148,11 +152,10 @@ DIM_ADVICE = {
 
 PROFILE_ADVICE = {
     "maladaptive_crisis":   "MỨC ĐỘ NGUY HIỂM: Bạn đang kiệt sức hoàn toàn về mặt tâm lý. Xin đừng cố chịu đựng một mình, hãy liên hệ ngay với bác sĩ tâm lý hoặc đường dây hỗ trợ y tế khẩn cấp để được giúp đỡ.",
-    "mdd_anxious_distress": "MỨC ĐỘ NẶNG (Trầm cảm kèm Lo âu): Bạn đang mang một gánh nặng tâm lý rất lớn. Hãy bắt đầu từ những hoạt động nhỏ nhất để tìm lại niềm vui và tìm một bác sĩ chuyên khoa đồng hành.",
+    "major_depression": "MỨC ĐỘ NẶNG (Trầm cảm nặng - MDD): Bạn đang đánh mất năng lượng và niềm vui sống. Hãy duy trì thời gian biểu sinh hoạt cố định, giữ kết nối với người thân và đi khám tâm lý để được hỗ trợ phương pháp trị liệu phù hợp.",
     "panic_disorder":       "MỨC ĐỘ NẶNG (Hoảng sợ cấp tính): Cơ thể bạn đang phản ứng thái quá với sự lo âu. Khi cơn hoảng sợ đến, hãy tập hít thở sâu, chạm vào các đồ vật xung quanh để kéo tâm trí về hiện tại. Bạn nên gặp chuyên gia để học cách kiểm soát triệt để triệu chứng này.",
     "gad_stress_dominant":  "MỨC ĐỘ VỪA - NẶNG (Lo âu & Căng thẳng kéo dài): Bạn đang bị quá tải và khó ngừng suy nghĩ. Hãy thử các bài tập kéo giãn cơ bắp, dành ra một 'khung giờ lo lắng' cố định thay vì lo âu cả ngày, và trò chuyện với tư vấn viên để giải tỏa.",
     "social_anxiety":       "MỨC ĐỘ VỪA - NẶNG (Lo âu xã hội): Những nỗi sợ phán xét đang làm đảo lộn cuộc sống của bạn. Trị liệu hành vi nhận thức (CBT) đã được chứng minh là cực kỳ hiệu quả để giúp bạn lấy lại sự tự tin.",
-    "pure_depression":      "MỨC ĐỘ NẶNG (Trầm cảm): Bạn đang đánh mất năng lượng và niềm vui sống. Hãy duy trì một thời gian biểu sinh hoạt cố định, giữ kết nối với những người bạn tin tưởng và đi khám tâm lý để được hỗ trợ phương pháp trị liệu phù hợp.",
     "low_risk":             "MỨC ĐỘ AN TOÀN: Không có dấu hiệu nào đáng lo ngại. Sức khỏe tinh thần của bạn hiện tại rất ổn định. Hãy tiếp tục duy trì lối sống lành mạnh, ngủ đủ giấc và vận động thể chất đều đặn nhé.",
 }
 
@@ -190,7 +193,8 @@ BACKWARD_QUESTIONS: Dict[str, Dict] = {
         "type": "multiselect",
         "text": "Trong giai đoạn đó, bạn có gặp các triệu chứng nào sau đây không? (Chọn tất cả các triệu chứng bạn gặp)",
         "options": [
-            {"value": "a3_a", "label": "Thay đổi cân nặng hoặc ăn uống rõ rệt (tăng hoặc giảm > 5% trong 1 tháng)"},
+            {"value": "a3_a",
+                "label": "Thay đổi cân nặng hoặc ăn uống rõ rệt (tăng hoặc giảm > 5% trong 1 tháng)"},
             {"value": "a3_b", "label": "Mất ngủ hoặc ngủ quá nhiều gần như mỗi ngày"},
             {"value": "a3_c", "label": "Vận động chậm chạp hoặc bồn chồn, bứt rứt rõ rệt đến mức người khác nhận ra"},
             {"value": "a3_d", "label": "Mệt mỏi hoặc mất năng lượng gần như mỗi ngày"},
@@ -198,7 +202,7 @@ BACKWARD_QUESTIONS: Dict[str, Dict] = {
             {"value": "a3_f", "label": "Khó tập trung, suy nghĩ hoặc đưa ra quyết định, gần như mỗi ngày"},
             {"value": "a3_g", "label": "Thường xuyên nghĩ đến cái chết, có ý nghĩ tự tử hoặc đã lên kế hoạch/thực hiện"},
         ],
-        "min_count": 4, 
+        "min_count": 4,
     },
     "a4": {
         "key": "a4",
@@ -216,7 +220,7 @@ BACKWARD_QUESTIONS: Dict[str, Dict] = {
         "key": "n2",
         "type": "yesno",
         "text": "Bạn có thể kiểm soát được những lo lắng đó, tức là có thể dừng lo lắng khi muốn không?",
-        "stop_if": "yes", 
+        "stop_if": "yes",
         "stop_reason": "Có thể kiểm soát lo lắng → không đủ tiêu chí GAD",
     },
     "n3": {
@@ -229,9 +233,10 @@ BACKWARD_QUESTIONS: Dict[str, Dict] = {
             {"value": "n3_c", "label": "Dễ mệt mỏi"},
             {"value": "n3_d", "label": "Khó tập trung hoặc đầu óc trống rỗng"},
             {"value": "n3_e", "label": "Cáu kỉnh, dễ nổi cáu"},
-            {"value": "n3_f", "label": "Khó ngủ (khó đi vào giấc, hay thức giữa đêm, hoặc ngủ không sâu giấc)"},
+            {"value": "n3_f",
+                "label": "Khó ngủ (khó đi vào giấc, hay thức giữa đêm, hoặc ngủ không sâu giấc)"},
         ],
-        "min_count": 3, 
+        "min_count": 3,
     },
     "n4": {
         "key": "n4",
@@ -274,7 +279,7 @@ BACKWARD_QUESTIONS: Dict[str, Dict] = {
             {"value": "d4_l", "label": "Sợ mất kiểm soát hoặc sắp hóa điên"},
             {"value": "d4_m", "label": "Sợ chết"},
         ],
-        "min_count": 4, 
+        "min_count": 4,
     },
 
     # Social Anxiety
@@ -310,11 +315,10 @@ BACKWARD_QUESTIONS: Dict[str, Dict] = {
     },
 }
 
-#  Backward Flow per profile 
+#  Backward Flow per profile
 
 BACKWARD_FLOW: Dict[str, List[str]] = {
-    "pure_depression":      ["a1", "a2", "a3", "a4"],
-    "mdd_anxious_distress": ["a1", "a2", "a3", "a4", "n1"],
+    "major_depression":     ["a1", "a2", "a3", "a4"],
     "gad_stress_dominant":  ["n1", "n2", "n3", "n4"],
     "panic_disorder":       ["d1a", "d1b", "d2", "d4"],
     "social_anxiety":       ["f1", "f2", "f3", "f4", "f5", "f6"],
@@ -323,8 +327,7 @@ BACKWARD_FLOW: Dict[str, List[str]] = {
 }
 
 CONFIRM_THRESHOLD: Dict[str, int] = {
-    "pure_depression":      3,   # a1/a2 + a3_pass + a4
-    "mdd_anxious_distress": 3,
+    "major_depression":     3,
     "gad_stress_dominant":  3,   # n1 + n3_pass + n4
     "panic_disorder":       3,   # d1a + d1b + d2 + d4_pass
     "social_anxiety":       4,   # f1..f6 ≥ 4
@@ -369,7 +372,8 @@ def _eval_multiselect(key: str, selected: List[str], known_answers: Dict[str, An
             count += 1
 
     passed = count >= min_count
-    logger.info(f"[BACKWARD] multiselect {key}: {count} selected (need ≥{min_count}) → {'PASS' if passed else 'FAIL'}")
+    logger.info(
+        f"[BACKWARD] multiselect {key}: {count} selected (need ≥{min_count}) → {'PASS' if passed else 'FAIL'}")
     return passed
 
 
@@ -420,22 +424,44 @@ def _compute_score(dim: str, answers: Dict[int, int], action: str, v1: int, v2: 
 
 def _fuzzy_evaluate(dim: str, total: int) -> Dict[str, Any]:
     params = FUZZY_PARAMS[dim]
+
+    print(f"\n   BƯỚC 3 — MỜ HÓA (FUZZIFICATION)")
+    print(f"   {'Tập mờ':<16} | {'Công thức':<46} | μ")
+    print(f"   {'.'*70}")
+
     memberships = []
     for p in params:
         mu = _gaussmf(total, p["mean"], p["sigma"])
+        formula = f"exp(-(({total}-{p['mean']})² / (2×{p['sigma']}²)))"
+        flag = " ◄" if mu > 0.001 else ""
+        label_short = p['label'].replace("Extremely Severe", "Ext. Severe")
+        print(f"   {label_short:<16} | {formula:<46} | {mu:.3f}{flag}")
         memberships.append({"label": p["label"], "idx": p["idx"], "mu": mu})
 
-    numerator   = sum(m["mu"] * m["idx"] for m in memberships)
+    numerator = sum(m["mu"] * m["idx"] for m in memberships)
     denominator = sum(m["mu"] for m in memberships)
     crisp = (numerator / denominator) if denominator > 0 else 0.0
 
-    if   crisp < 0.5: label_idx = 0
+    parts_num = " + ".join(f"({m['mu']:.3f}×{m['idx']})" for m in memberships)
+    parts_den = " + ".join(f"{m['mu']:.3f}" for m in memberships)
+
+    print(f"\n   BƯỚC 4 — GIẢI MỜ (DEFUZZIFICATION - Centroid)")
+    print(f"   Tử số  = {parts_num}")
+    print(f"          = {numerator:.3f}")
+    print(f"   Mẫu số = {parts_den}")
+    print(f"          = {denominator:.3f}")
+    print(
+        f"   → CRISP = {numerator:.3f} / {denominator:.3f} = {crisp:.4f} (Thang 0-4)")
+
+    if crisp < 0.5: label_idx = 0
     elif crisp < 1.5: label_idx = 1
     elif crisp < 2.5: label_idx = 2
     elif crisp < 3.5: label_idx = 3
-    else:             label_idx = 4
+    else: label_idx = 4
 
-    label = ["Normal", "Mild", "Moderate", "Severe", "Extremely Severe"][label_idx]
+    label = ["Normal", "Mild", "Moderate",
+             "Severe", "Extremely Severe"][label_idx]
+    print(f"   → Kết luận: {label.upper()} (label_idx={label_idx})")
 
     return {
         "fuzzy_value": round(crisp, 4),
@@ -448,38 +474,54 @@ def _fuzzy_evaluate(dim: str, total: int) -> Dict[str, Any]:
 # Bước 5: Forward Chaining
 
 def _forward_chaining(d10: int, a10: int, s10: int) -> str:
-    logger.info(f"[FORWARD] D×10={d10}, A×10={a10}, S×10={s10}")
+    print(f"\n{'='*70}")
+    print(f"{'BƯỚC 6 — FORWARD CHAINING':^70}")
+    print(f"{'='*70}")
+    print(f"   Fuzzy input (×10) : D={d10}  A={a10}  S={s10}")
+
+    PRIORITY = [
+        "maladaptive_crisis",
+        "major_depression",
+        "panic_disorder",
+        "gad_stress_dominant",
+        "social_anxiety",
+        "low_risk",
+    ]
 
     if PROLOG_AVAILABLE and _prolog_instance is not None:
+        print("   Engine            : SWI-Prolog (pyswip)")
         with _prolog_lock:
             try:
                 query = f"candidate_profile(Profile, {d10}, {a10}, {s10})"
                 results = list(_prolog_instance.query(query))
-                if results:
-                    return str(results[0]["Profile"])
+                profiles_found = [str(r["Profile"]) for r in results]
+                print(f"   Prolog candidates  : {profiles_found}")
+                profile = next(
+                    (p for p in PRIORITY if p in profiles_found),
+                    "low_risk"
+                )
+                print(f"   → Hồ sơ nhận diện : {profile.upper()}")
+                return profile
             except Exception as e:
-                logger.warning(f"[PROLOG] Forward chaining error: {e}. Using Python fallback.")
+                logger.warning(
+                    f"[PROLOG] Forward chaining error: {e}. Using Python fallback.")
 
-    # Python fallback
+    print("   Engine            : Python fallback")
     if d10 >= 30 and a10 >= 30 and s10 >= 30:
-        return "maladaptive_crisis"
-    elif d10 >= 25 and a10 >= 25:
-        return "mdd_anxious_distress"
-    elif a10 >= 25 and d10 <= 15 and s10 <= 20:
-        return "panic_disorder"
-    elif s10 >= 25 and d10 <= 15 and a10 <= 15:
-        return "gad_stress_dominant"
-    elif d10 >= 25 and a10 < 25 and s10 < 25:
-        return "pure_depression"
-    elif a10 >= 20 and s10 >= 20:
-        return "social_anxiety"
+        profile = "maladaptive_crisis"
+    elif d10 >= 25:
+        profile = "major_depression"
+    elif a10 >= 12 and d10 <= 15 and s10 <= 20:   
+        profile = "panic_disorder"
+    elif s10 >= 20 and d10 <= 15 and a10 <= 15:   
+        profile = "gad_stress_dominant"
+    elif a10 >= 10 and s10 >= 15:             
+        profile = "social_anxiety"
     elif d10 < 15 and a10 < 15 and s10 < 15:
-        return "low_risk"
+        profile = "low_risk"
     else:
-        mx = max(d10, a10, s10)
-        if   mx == d10: return "pure_depression"
-        elif mx == a10: return "panic_disorder"
-        else:           return "gad_stress_dominant"
+        profile = "low_risk"
+    return profile
 
 
 # Bước 6: Backward Chaining Verification
@@ -510,14 +552,17 @@ def _verify_diagnosis(profile: str, known_answers: Dict[str, Any]) -> bool:
                         for opt in ans:
                             _prolog_instance.assertz(f"known({opt}, yes)")
                         # assert tổng đếm
-                        _prolog_instance.assertz(f"known({q}_count, {len(ans)})")
+                        _prolog_instance.assertz(
+                            f"known({q}_count, {len(ans)})")
                     else:
                         _prolog_instance.assertz(f"known({q}, {ans})")
 
-                results = list(_prolog_instance.query(f"verify_diagnosis({profile})"))
+                results = list(_prolog_instance.query(
+                    f"verify_diagnosis({profile})"))
                 return len(results) > 0
             except Exception as e:
-                logger.warning(f"[PROLOG] Backward error: {e}. Using Python fallback.")
+                logger.warning(
+                    f"[PROLOG] Backward error: {e}. Using Python fallback.")
             finally:
                 _retract_known()
 
@@ -530,17 +575,11 @@ def _verify_diagnosis(profile: str, known_answers: Dict[str, Any]) -> bool:
             return False
         return _eval_multiselect(key, selected, known_answers)
 
-    if profile in ("pure_depression", "mdd_anxious_distress"):
-        # A1 or A2 phải yes
+    if profile == "major_depression":
         a1_or_a2 = yn("a1") or yn("a2")
-        # A3: multi-select ≥ 5 tổng (a1/a2 đóng góp 1)
         a3_ok = multi_pass("a3")
-        # A4: yes
         a4_ok = yn("a4")
-        base = a1_or_a2 and a3_ok and a4_ok
-        if profile == "mdd_anxious_distress":
-            return base and yn("n1")
-        return base
+        return a1_or_a2 and a3_ok and a4_ok
 
     elif profile == "gad_stress_dominant":
         # N1 phải yes, N2 phải no (không kiểm soát được), N3 multi ≥ 3, N4 yes
@@ -583,15 +622,21 @@ def run_screening_phase(answers: Dict[int, int]) -> Dict[str, Any]:
 
 def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str, Any]:
     final = {}
-    dim_labels = {
-        "depression": "TRẦM CẢM (Depression)",
-        "anxiety":    "LO ÂU (Anxiety)",
-        "stress":     "CĂNG THẲNG (Stress)",
-    }
+    print(f"\n{'='*70}")
+    print(f"{'HỆ CHUYÊN GIA ĐÁNH GIÁ SỨC KHỎE TÂM THẦN — DASS-42':^70}")
+    print(f"{'='*70}")
 
     for dim in ["depression", "anxiety", "stress"]:
         s = screening_result["screening"][dim]
         scr = s["screening"]
+
+        dim_label_map = {
+            "depression": "TRẦM CẢM (Depression)",
+            "anxiety":    "LO ÂU (Anxiety)",
+            "stress":     "CĂNG THẲNG (Stress)",
+        }
+        print(f"\n[{dim_label_map[dim]}]")
+        print(f"{'-'*70}")
 
         if scr["action"] == "skip":
             final[dim] = {
@@ -605,7 +650,17 @@ def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str
             }
             continue
 
-        score_res = _compute_score(dim, answers, scr["action"], scr["v1"], scr["v2"])
+        score_res = _compute_score(
+            dim, answers, scr["action"], scr["v1"], scr["v2"])
+        print(f"\n BƯỚC 2: TÍNH ĐIỂM TỔNG")
+        print(f"   - Phương pháp : {score_res['method']}")
+        if score_res['detail']:
+            items = [f"Q{q}={v}" for q, v in score_res['detail'].items()]
+            # In theo hàng 7 câu
+            for i in range(0, len(items), 7):
+                prefix = "   - Chi tiết      : " if i == 0 else "                     "
+                print(prefix + "  ".join(items[i:i+7]))
+        print(f"   → ĐIỂM TỔNG   : {score_res['total']} / 42")
         fuzzy_res = _fuzzy_evaluate(dim, score_res["total"])
         advice = DIM_ADVICE[dim][fuzzy_res["label_idx"]]
 
@@ -636,17 +691,83 @@ def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str
 
 
 def run_backward_phase(profile: str, known_answers: Dict[str, Any], fuzzy_result: Dict) -> Dict[str, Any]:
+    print(f"\n{'='*70}")
+    print(f"{'BƯỚC 7 — BACKWARD CHAINING':^70}")
+    print(f"{'='*70}")
+    print(f"   Profile nghi ngờ : {profile.upper()}")
+
     bw_flow = BACKWARD_FLOW.get(profile, [])
 
-    verified = _verify_diagnosis(profile, known_answers)
-    final_profile = profile if verified else "low_risk"
+    if not bw_flow:
+        print(
+            f"   → Profile {profile.upper()} tự động xác nhận (không cần backward)")
+        final_profile = profile
+        verified = True
+    else:
+        print(f"\n   Câu trả lời backward:")
+        for k in bw_flow:
+            ans = known_answers.get(k, "—")
+            q_text = BACKWARD_QUESTIONS.get(k, {}).get("text", k)
+            q_type = BACKWARD_QUESTIONS.get(k, {}).get("type", "yesno")
+            if q_type == "multiselect":
+                selected = ans if isinstance(ans, list) else []
+                min_c = BACKWARD_QUESTIONS[k].get("min_count", 0)
+                mark = "✓" if len(selected) >= min_c else "✗"
+                print(
+                    f"   [{mark}] {k}: {len(selected)} triệu chứng chọn (cần ≥{min_c})")
+                for s in selected:
+                    print(f"        • {s}")
+            else:
+                mark = "✓" if ans == "yes" else "✗"
+                print(f"   [{mark}] {k}: {ans}")
+
+        verified = _verify_diagnosis(profile, known_answers)
+        status = "ĐÃ XÁC NHẬN ✓" if verified else "CHƯA ĐỦ TIÊU CHÍ ✗"
+        print(f"\n   → Kết quả xác minh: {status}")
+
+        if verified:
+            final_profile = profile
+        else:
+            dims = fuzzy_result.get("dimensions", {})
+            any_severe = any(
+                dims.get(d, {}).get("label_idx", 0) >= 3
+                for d in ["depression", "anxiety", "stress"]
+            )
+            if any_severe:
+                final_profile = profile
+                print(
+                    f"   → Safety net: điểm fuzzy cao (≥ Severe) → giữ profile {profile.upper()}")
+            else:
+                final_profile = "low_risk"
+                print(f"   → Không đủ tiêu chí + điểm thấp → LOW_RISK")
 
     profile_adv = PROFILE_ADVICE.get(final_profile, PROFILE_ADVICE["low_risk"])
+
+    print(f"\n{'='*70}")
+    print(f"{'TỔNG KẾT CHẨN ĐOÁN':^70}")
+    print(f"{'='*70}")
+    dims = fuzzy_result.get("dimensions", {})
+    dim_labels = {
+        "depression": "Trầm cảm (Depression)",
+        "anxiety":    "Lo âu (Anxiety)",
+        "stress":     "Căng thẳng (Stress)",
+    }
+    print(f"  {'Chiều':<25} | {'Điểm':^6} | {'Fuzzy':^7} | Kết luận")
+    print(f"  {'-'*65}")
+    for dim, label in dim_labels.items():
+        r = dims.get(dim, {})
+        print(f"  {label:<25} | {r.get('total_score', 0):>3}/42 | {r.get('fuzzy_value', 0):.3f}  | {r.get('label', 'N/A').upper()}")
+    print(f"\n  → Profile cuối    : {final_profile.upper()}")
+    print(
+        f"  → Xác nhận backward: {'CÓ' if verified else 'KHÔNG (safety net)'}")
+    print(f"\n[KẾT LUẬN] {profile_adv}")
+    print(f"{'='*70}")
 
     return {
         "phase":            "complete",
         "profile":          final_profile,
         "profile_verified": verified,
+        "profile_confirmed": verified,
         "profile_advice":   profile_adv,
-        "dimensions":       fuzzy_result.get("dimensions", {}),
+        "dimensions":       dims,
     }

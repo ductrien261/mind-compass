@@ -146,6 +146,7 @@ export default function AssessmentFlow({ onComplete }: Props) {
     // Analysis callbacks
     const handleAnalysis1Done = async () => {
         try {
+            console.log("answers before screening:", answers)
             const res = await apiScreening(answers);
             setScreeningRes(res);
             if (res.questions_needed.length > 0) {

@@ -35,7 +35,7 @@ export default function LandingPage() {
             <a href="#" className="hover:text-blue-600 transition-colors">Phương pháp</a>
             <a href="#" className="hover:text-blue-600 transition-colors">Câu hỏi thường gặp</a>
           </div>
-          <button className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-semibold text-sm hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30">
+          <button onClick={() => router.push("/assess")} className="bg-blue-600 text-white px-6 py-2.5 rounded-full font-semibold text-sm hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30">
             Làm bài Test
           </button>
         </div>

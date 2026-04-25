@@ -34,5 +34,14 @@ export default function ResultPage() {
         );
     }
 
-    return <ResultDashboard result={result} />;
+    return (
+    <ResultDashboard
+        result={result}
+        onRestart={() => {
+            sessionStorage.removeItem("mindcompass_result");
+            router.push("/assess");
+        }}
+        onHome={() => router.push("/")}
+    />
+);
 }

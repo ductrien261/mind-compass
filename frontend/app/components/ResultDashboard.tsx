@@ -6,6 +6,8 @@ import {
     Brain, Wind, Headphones, CalendarPlus, Download,
     Sparkles, Activity, HeartPulse, ShieldCheck,
     CheckCircle2, Target, GitMerge, ChevronRight,
+    Home,
+    RotateCcw,
 } from "lucide-react";
 
 const DIM_CONFIG = {
@@ -36,17 +38,20 @@ const LEVEL_VI: Record<string, string> = {
 
 const PROFILE_VI: Record<string, string> = {
     "low_risk": "Ổn định — Không có dấu hiệu đáng lo ngại",
-    "pure_depression": "Nghi ngờ Trầm cảm (MDD)",
     "gad_stress_dominant": "Nghi ngờ Rối loạn Lo âu lan tỏa (GAD)",
     "panic_disorder": "Nghi ngờ Rối loạn Hoảng sợ (Panic Disorder)",
     "social_anxiety": "Nghi ngờ Lo âu xã hội (Social Anxiety)",
-    "mdd_anxious_distress": "Nghi ngờ Trầm cảm kèm Lo âu",
+    "major_depression": "Nghi ngờ Trầm cảm nặng (MDD)",
     "maladaptive_crisis": "Khủng hoảng toàn diện — Cần hỗ trợ khẩn cấp",
 };
 
-interface Props { result: FinalResult }
+interface Props {
+    result: FinalResult;
+    onRestart?: () => void;
+    onHome?: () => void;
+}
 
-export default function ResultDashboard({ result }: Props) {
+export default function ResultDashboard({ result, onRestart, onHome }: Props) {
     const dims = result.dimensions;
 
     const radarScores = (["depression", "anxiety", "stress"] as const).map(dim => ({
@@ -80,9 +85,30 @@ export default function ResultDashboard({ result }: Props) {
                         Phân tích hoàn tất • Bảo mật ẩn danh
                     </p>
                 </div>
-                <button className="flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-slate-800 transition-all">
-                    <Download size={18} /> Lưu báo cáo PDF
-                </button>
+                <div className="flex items-center gap-3">
+                    {onHome && (
+                        <button
+                            onClick={onHome}
+                            className="flex items-center gap-2 px-5 py-3 rounded-full font-bold text-sm border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all"
+                        >
+                            <Home size={16} /> Trang chủ
+                        </button>
+                    )}
+                    {onRestart && (
+                        <button
+                            onClick={onRestart}
+                            className="flex items-center gap-2 px-5 py-3 rounded-full font-bold text-sm border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all"
+                        >
+                            <RotateCcw size={16} /> Làm lại
+                        </button>
+                    )}
+                    <button
+                        onClick={() => window.print()}
+                        className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-slate-800 transition-all"
+                    >
+                        <Download size={18} /> Lưu báo cáo PDF
+                    </button>
+                </div>
             </header>
 
             <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -195,9 +221,15 @@ export default function ResultDashboard({ result }: Props) {
                             <h4 className="text-xs font-extrabold text-orange-800/60 uppercase tracking-widest mb-2">
                                 Kết quả Chẩn đoán
                             </h4>
-                            <h3 className="text-2xl md:text-3xl font-black text-orange-900 mb-4 leading-tight">
+                            <h3 className="text-2xl md:text-3xl font-black text-orange-900 mb-4 leading-tight font-sans">
                                 {profileLabel}
                             </h3>
+                            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-4 ${result.profile_verified
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                                }`}>
+                                {result.profile_verified ? "✓ Đã xác nhận lâm sàng" : "⚠ Nghi ngờ — chưa xác nhận đầy đủ"}
+                            </div>
                             <p className="text-orange-800/80 font-medium leading-relaxed">
                                 {result.profile_verified
                                     ? `Đã xác nhận với ${result.confirm_score}/${result.confirm_total} triệu chứng đặc trưng.`

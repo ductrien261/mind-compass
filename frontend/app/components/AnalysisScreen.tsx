@@ -10,18 +10,18 @@ interface Props {
 
 const MESSAGES: Record<number, string[]> = {
     1: [
-        "Đang thu thập và mã hóa câu trả lời...",
-        "Áp dụng Prolog Screening đánh giá ngưỡng...",
-        "Hệ chuyên gia đang quyết định bước tiếp theo...",
+        "Đang xem xét câu trả lời của bạn...",
+        "Kiểm tra các dấu hiệu ban đầu...",
+        "Chuẩn bị đánh giá chuyên sâu hơn...",
     ],
     2: [
-        "Đang mờ hóa điểm số (Fuzzification)...",
-        "Chạy luật Gaussian & giải mờ (Centroid)...",
-        "Forward Chaining nhận diện hồ sơ tâm lý...",
+        "Đang phân tích mức độ cảm xúc...",
+        "So sánh với các mẫu tâm lý phổ biến...",
+        "Xác định hồ sơ sức khỏe tâm thần...",
     ],
     3: [
-        "Đang phân tích các dấu hiệu chuyên sâu...",
-        "Tổng hợp báo cáo và đúc kết lời khuyên...",
+        "Đang tổng hợp kết quả...",
+        "Chuẩn bị lời khuyên phù hợp cho bạn...",
     ],
 };
 
