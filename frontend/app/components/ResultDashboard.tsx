@@ -29,20 +29,41 @@ const DIM_CONFIG = {
 };
 
 const LEVEL_VI: Record<string, string> = {
-    "Normal": "Bình thường",
-    "Mild": "Mức độ Nhẹ",
-    "Moderate": "Mức độ Vừa",
-    "Severe": "Mức độ Nặng",
-    "Extremely Severe": "Cực kỳ Nặng",
+    "Normal":           "Bình thường",
+    "Mild":             "Mức độ Nhẹ",
+    "Moderate":         "Mức độ Vừa",
+    "Severe":           "Mức độ Nặng",
+    "Extremely Severe": "Rất Nặng",
 };
 
+// Tên tiếng Việt đầy đủ cho từng profile chẩn đoán
 const PROFILE_VI: Record<string, string> = {
-    "low_risk": "Ổn định — Không có dấu hiệu đáng lo ngại",
-    "gad_stress_dominant": "Nghi ngờ Rối loạn Lo âu lan tỏa (GAD)",
-    "panic_disorder": "Nghi ngờ Rối loạn Hoảng sợ (Panic Disorder)",
-    "social_anxiety": "Nghi ngờ Lo âu xã hội (Social Anxiety)",
-    "major_depression": "Nghi ngờ Trầm cảm nặng (MDD)",
-    "maladaptive_crisis": "Khủng hoảng toàn diện — Cần hỗ trợ khẩn cấp",
+    "low_risk":             "Sức khỏe tâm thần Ổn định",
+    "major_depression":     "Nghi ngờ Trầm cảm Nặng (MDD)",
+    "panic_disorder":       "Nghi ngờ Rối loạn Hoảng sợ",
+    "gad_stress_dominant":  "Nghi ngờ Rối loạn Lo âu Lan tỏa (GAD)",
+    "social_anxiety":       "Nghi ngờ Lo âu Xã hội (SAD)",
+    "maladaptive_crisis":   "Khủng hoảng Tâm lý Toàn diện — Cần hỗ trợ Khẩn cấp",
+};
+
+// Subtitle ngắn cho mỗi profile
+const PROFILE_SUBTITLE: Record<string, string> = {
+    "low_risk":             "Không có dấu hiệu lâm sàng đáng lo ngại",
+    "major_depression":     "Triệu chứng ảnh hưởng nghiêm trọng đến cuộc sống hàng ngày",
+    "panic_disorder":       "Các cơn lo âu đột ngột dữ dội, đạt đỉnh trong 10 phút",
+    "gad_stress_dominant":  "Lo lắng quá mức, kéo dài, khó kiểm soát trong ≥6 tháng",
+    "social_anxiety":       "Sợ hãi rõ rệt trong các tình huống xã hội, né tránh kéo dài",
+    "maladaptive_crisis":   "Cả 3 chiều đều ở mức nghiêm trọng — cần can thiệp ngay",
+};
+
+// Màu sắc theo mức độ nguy hiểm của profile
+const PROFILE_COLOR: Record<string, { bg: string; text: string; badge: string }> = {
+    "low_risk":             { bg: "from-emerald-900 to-emerald-800", text: "text-emerald-300", badge: "bg-emerald-500/20 text-emerald-300" },
+    "major_depression":     { bg: "from-blue-900 to-slate-800",     text: "text-blue-300",    badge: "bg-blue-500/20 text-blue-300" },
+    "panic_disorder":       { bg: "from-orange-900 to-slate-800",   text: "text-orange-300",  badge: "bg-orange-500/20 text-orange-300" },
+    "gad_stress_dominant":  { bg: "from-yellow-900 to-slate-800",   text: "text-yellow-300",  badge: "bg-yellow-500/20 text-yellow-300" },
+    "social_anxiety":       { bg: "from-purple-900 to-slate-800",   text: "text-purple-300",  badge: "bg-purple-500/20 text-purple-300" },
+    "maladaptive_crisis":   { bg: "from-red-950 to-slate-900",      text: "text-red-300",     badge: "bg-red-500/20 text-red-300" },
 };
 
 interface Props {
@@ -60,9 +81,11 @@ export default function ResultDashboard({ result, onRestart, onHome }: Props) {
         colorHex: DIM_CONFIG[dim].colorHex,
     }));
 
-    const profileLabel = PROFILE_VI[result.profile] ?? result.profile;
+    const profileLabel    = PROFILE_VI[result.profile]       ?? result.profile;
+    const profileSubtitle = PROFILE_SUBTITLE[result.profile] ?? "";
+    const profileColor    = PROFILE_COLOR[result.profile]    ?? PROFILE_COLOR["low_risk"];
 
-    // Lời khuyên chuyên gia (từ backward chaining details)
+    // Bằng chứng xác nhận từ backward chaining
     const evidence = (result.confirm_detail || [])
         .filter(d => d.answer === "yes")
         .map(d => d.text)
@@ -115,22 +138,39 @@ export default function ResultDashboard({ result, onRestart, onHome }: Props) {
 
                 {/* AI INSIGHT HERO */}
                 <div className="col-span-1 xl:col-span-12">
-                    <div className="bg-linear-to-br from-slate-900 to-slate-800 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden shadow-2xl shadow-slate-900/10">
-                        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3" />
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/20 rounded-full blur-[60px] translate-y-1/2 -translate-x-1/4" />
-                        <div className="relative z-10">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-blue-300 text-xs font-bold mb-6 uppercase tracking-wider">
-                                <Sparkles size={16} className="animate-pulse" /> Đúc kết từ AI Hệ chuyên gia
+                    <div className={`bg-gradient-to-br ${profileColor.bg} rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden shadow-2xl shadow-slate-900/20`}>
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3" />
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-[60px] translate-y-1/2 -translate-x-1/4" />
+                        <div className="relative z-10 flex flex-col md:flex-row md:items-start gap-8">
+                            <div className="flex-1">
+                                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${profileColor.badge} border border-white/10 text-xs font-bold mb-6 uppercase tracking-wider`}>
+                                    <Sparkles size={16} className="animate-pulse" /> Kết quả từ Hệ Chuyên gia DASS-42
+                                </div>
+                                <h2 className="text-2xl md:text-4xl font-black text-white mb-2 leading-tight">
+                                    {profileLabel}
+                                </h2>
+                                <p className={`text-base font-semibold mb-6 ${profileColor.text}`}>
+                                    {profileSubtitle}
+                                </p>
+                                <p className="text-white/70 text-base leading-relaxed max-w-3xl">
+                                    {result.profile_advice}
+                                </p>
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-medium text-white mb-4 leading-relaxed">
-                                "{profileLabel}"
-                            </h2>
-                            <p className="text-slate-400 text-lg leading-relaxed max-w-4xl">
-                                {result.profile_advice}
-                            </p>
+                            <div className="shrink-0">
+                                <div className={`px-6 py-4 rounded-2xl bg-white/10 border border-white/15 text-center min-w-[160px]`}>
+                                    <div className="text-white/50 text-xs font-bold uppercase tracking-wider mb-1">Trạng thái</div>
+                                    <div className={`text-lg font-black ${result.profile_verified ? "text-green-400" : "text-yellow-400"}`}>
+                                        {result.profile_verified ? "✓ Xác nhận" : "⚠ Nghi ngờ"}
+                                    </div>
+                                    <div className="text-white/50 text-xs mt-1">
+                                        {result.profile_verified ? "Tiêu chí lâm sàng đầy đủ" : "Đánh giá sơ bộ"}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
 
                 {/* RADAR CHART */}
                 <div className="col-span-1 xl:col-span-4">

@@ -96,6 +96,16 @@ SCREENING_CFG = {
     "stress":     {"q1": 11, "q2":  8, "threshold": 1.5},
 }
 
+# Hệ số hiệu chỉnh nội suy (tính từ dữ liệu thực tế — Cell 19 notebook v7)
+# depression: 2 câu ước lượng thấp hơn thực tế 14.4% → nhân 1.144
+# anxiety:    2 câu ước lượng thấp hơn thực tế 11.3% → nhân 1.113
+# stress:     2 câu khớp gần đúng (sai số 2.8%)      → nhân 0.972
+CORRECTION_FACTORS = {
+    "depression": 1.144,
+    "anxiety":    1.113,
+    "stress":     0.972,
+}
+
 DIM_QUESTIONS = {
     "depression": [3, 5, 10, 13, 16, 17, 21, 24, 26, 31, 34, 37, 38, 42],
     "anxiety":    [2, 4,  7,  9, 15, 19, 20, 23, 25, 28, 30, 36, 40, 41],
@@ -151,12 +161,45 @@ DIM_ADVICE = {
 }
 
 PROFILE_ADVICE = {
-    "maladaptive_crisis":   "MỨC ĐỘ NGUY HIỂM: Bạn đang kiệt sức hoàn toàn về mặt tâm lý. Xin đừng cố chịu đựng một mình, hãy liên hệ ngay với bác sĩ tâm lý hoặc đường dây hỗ trợ y tế khẩn cấp để được giúp đỡ.",
-    "major_depression": "MỨC ĐỘ NẶNG (Trầm cảm nặng - MDD): Bạn đang đánh mất năng lượng và niềm vui sống. Hãy duy trì thời gian biểu sinh hoạt cố định, giữ kết nối với người thân và đi khám tâm lý để được hỗ trợ phương pháp trị liệu phù hợp.",
-    "panic_disorder":       "MỨC ĐỘ NẶNG (Hoảng sợ cấp tính): Cơ thể bạn đang phản ứng thái quá với sự lo âu. Khi cơn hoảng sợ đến, hãy tập hít thở sâu, chạm vào các đồ vật xung quanh để kéo tâm trí về hiện tại. Bạn nên gặp chuyên gia để học cách kiểm soát triệt để triệu chứng này.",
-    "gad_stress_dominant":  "MỨC ĐỘ VỪA - NẶNG (Lo âu & Căng thẳng kéo dài): Bạn đang bị quá tải và khó ngừng suy nghĩ. Hãy thử các bài tập kéo giãn cơ bắp, dành ra một 'khung giờ lo lắng' cố định thay vì lo âu cả ngày, và trò chuyện với tư vấn viên để giải tỏa.",
-    "social_anxiety":       "MỨC ĐỘ VỪA - NẶNG (Lo âu xã hội): Những nỗi sợ phán xét đang làm đảo lộn cuộc sống của bạn. Trị liệu hành vi nhận thức (CBT) đã được chứng minh là cực kỳ hiệu quả để giúp bạn lấy lại sự tự tin.",
-    "low_risk":             "MỨC ĐỘ AN TOÀN: Không có dấu hiệu nào đáng lo ngại. Sức khỏe tinh thần của bạn hiện tại rất ổn định. Hãy tiếp tục duy trì lối sống lành mạnh, ngủ đủ giấc và vận động thể chất đều đặn nhé.",
+    "maladaptive_crisis":
+        "MỨC ĐỘ NGUY HIỂM: Bạn đang trong tình trạng khủng hoảng tâm lý nghiêm trọng. "
+        "Bạn cần được hỗ trợ y tế khẩn cấp và đánh giá bởi chuyên gia ngay lập tức. "
+        "Lưu ý quan trọng: Không nên ở một mình trong lúc này. Nếu có ý nghĩ tự làm hại bản thân, "
+        "hãy liên hệ ngay với người thân tin cậy hoặc gọi đường dây nóng hỗ trợ tâm lý ngay lập tức.",
+
+    "major_depression":
+        "MỨC ĐỘ NẶNG (Trầm cảm - MDD): Theo WHO mhGAP: "
+        "(1) Cố gắng duy trì các hoạt động từng mang lại niềm vui cho bạn, dù chỉ bắt đầu bằng những bước rất nhỏ. "
+        "(2) Duy trì thời gian biểu sinh hoạt đều đặn: ngủ, ăn và vận động đúng giờ. "
+        "(3) Duy trì kết nối, trò chuyện với gia đình và bạn bè thân thiết. "
+        "Bạn nên gặp chuyên gia để được tư vấn các liệu pháp tâm lý phù hợp như CBT hoặc IPT.",
+
+    "panic_disorder":
+        "MỨC ĐỘ NẶNG (Rối loạn Hoảng sợ): Theo WHO mhGAP: "
+        "(1) Khi cơn hoảng sợ kéo đến: Thực hiện kỹ thuật thở chậm (hít vào chậm trong 3 giây, giữ hơi 2 giây, thở ra chậm 3 giây). "
+        "(2) Hãy nhớ rằng cơn hoảng sợ không gây nguy hiểm đến tính mạng dù cảm giác có thể rất dữ dội. "
+        "(3) Cố gắng không né tránh các tình huống gây sợ hãi, vì việc đối mặt dần dần sẽ giúp tình trạng không bị nặng hơn. "
+        "Nên gặp chuyên gia để được hướng dẫn liệu pháp tiếp xúc có kiểm soát.",
+
+    "gad_stress_dominant":
+        "MỨC ĐỘ VỪA-NẶNG (Rối loạn Lo âu lan tỏa / Căng thẳng kéo dài): Theo WHO mhGAP: "
+        "(1) Thực hành các kỹ thuật thư giãn: tập thở chậm từ bụng và thư giãn cơ toàn thân hàng ngày. "
+        "(2) Xác định các nguồn gây căng thẳng cụ thể và cùng người thân thảo luận cách giải quyết từng vấn đề. "
+        "(3) Tiếp tục duy trì các hoạt động xã hội và sinh hoạt thường ngày thay vì rút lui. "
+        "Nên chia sẻ tình trạng của mình với người thân tin cậy hoặc tìm gặp tư vấn viên.",
+
+    "social_anxiety":
+        "MỨC ĐỘ VỪA-NẶNG (Lo âu xã hội): Theo WHO mhGAP: "
+        "(1) Tập tiếp xúc dần dần với các tình huống xã hội thay vì né tránh hoàn toàn. "
+        "(2) Áp dụng kỹ thuật thở chậm (Hít 3s - Giữ 2s - Thở 3s) trước khi bước vào tình huống gây lo lắng. "
+        "(3) Chủ động tham gia vào các hoạt động cộng đồng phù hợp để tăng cường kết nối. "
+        "Nên gặp chuyên gia để được hỗ trợ lộ trình CBT — đã chứng minh hiệu quả cao với lo âu xã hội.",
+
+    "low_risk":
+        "MỨC ĐỘ AN TOÀN: Các chỉ số hiện tại của bạn nằm trong phạm vi an toàn. "
+        "Theo khuyến nghị: Bạn nên tiếp tục duy trì lối sống lành mạnh để bảo vệ sức khỏe tinh thần: "
+        "đảm bảo ngủ đủ giấc, duy trì chế độ ăn cân bằng, vận động thể chất thường xuyên "
+        "và nuôi dưỡng các mối quan hệ xã hội tích cực.",
 }
 
 # Backward Chaining Questions
@@ -413,9 +456,12 @@ def _compute_score(dim: str, answers: Dict[int, int], action: str, v1: int, v2: 
         total = sum(detail.values())
         method = "Tổng 14 câu đầy đủ"
     else:
-        total = round((v1 + v2) / 2 * 14)
+        # Nội suy điểm có hiệu chỉnh theo tỷ lệ thực tế/ước lượng từ dữ liệu
+        factor = CORRECTION_FACTORS[dim]
+        raw = (v1 + v2) / 2 * 14
+        total = min(round(raw * factor), 42)   # cap tại max DASS-42
+        method = f"Nội suy từ 2 câu: ({v1}+{v2})/2 × 14 × {factor} (hiệu chỉnh) = {raw:.1f} × {factor} → {total} (cap ≤42)"
         detail = {}
-        method = f"Nội suy từ 2 câu: ({v1}+{v2})/2 × 14"
 
     return {"total": total, "detail": detail, "method": method}
 
@@ -639,14 +685,21 @@ def run_fuzzy_phase(answers: Dict[int, int], screening_result: Dict) -> Dict[str
         print(f"{'-'*70}")
 
         if scr["action"] == "skip":
+            # Nội suy điểm từ 2 câu sàng lọc (có hiệu chỉnh theo correction factor)
+            score_res  = _compute_score(dim, answers, "skip", scr["v1"], scr["v2"])
+            print(f"\n BƯỚC 2: TÍNH ĐIỂM (Nội suy từ 2 câu sàng lọc)")
+            print(f"   - Phương pháp : {score_res['method']}")
+            print(f"   → ĐIỂM ƯỚC LƯỢNG: {score_res['total']} / 42")
+            fuzzy_res = _fuzzy_evaluate(dim, score_res["total"])
+            advice    = DIM_ADVICE[dim][fuzzy_res["label_idx"]]
             final[dim] = {
                 "screening_action": "skip",
-                "total_score": 0,
-                "fuzzy_value": 0.0,
-                "label_idx":   0,
-                "label":       "Normal",
-                "advice":      DIM_ADVICE[dim][0],
-                "memberships": [],
+                "total_score":  score_res["total"],
+                "fuzzy_value":  fuzzy_res["fuzzy_value"],
+                "label_idx":    fuzzy_res["label_idx"],
+                "label":        fuzzy_res["label"],
+                "advice":       advice,
+                "memberships":  fuzzy_res["memberships"],
             }
             continue
 
