@@ -153,26 +153,26 @@ TEST_CASES = [
         "answers": base_answers({q: 3 for q in STR_QS}),  # stress cao
         "backward": {
             "n1": "yes",
-            "n2": "no",   # không kiểm soát được → tiếp tục
+            "n2": "yes",  # 'yes' = thấy KHÓ kiểm soát được → đủ DSM-5 Criterion B → tiếp tục
             "n3": ["n3_a", "n3_b", "n3_f"],  # 3 triệu chứng ✓
             "n4": "yes",
         },
         "expect_profile": "gad_stress_dominant",
         "expect_verified": True,
-        "note": "Stress cao, N1+N2=no+N3(≥3)+N4 đủ tiêu chí GAD",
+        "note": "Stress cao, N1=yes + N2=yes(khó kiểm soát) + N3(≥3) + N4=yes → đủ tiêu chí GAD",
     },
 
-    # TC-09: GAD — N2=yes (kiểm soát được)
+    # TC-09: GAD — N2=no (kiểm soát được, không đủ tiêu chí)
     {
-        "name": "TC-09 — GAD (N2=yes → dừng sớm)",
+        "name": "TC-09 — GAD (N2=no → dừng sớm)",
         "answers": base_answers({q: 3 for q in STR_QS}),
         "backward": {
             "n1": "yes",
-            "n2": "yes",  # kiểm soát được → STOP, không đủ GAD
+            "n2": "no",   # 'no' = KHÔNG thấy khó kiểm soát → kiểm soát được → STOP, không đủ GAD
         },
         "expect_profile": "gad_stress_dominant",
         "expect_verified": False,
-        "note": "N2=yes nghĩa là kiểm soát được lo lắng → không đủ tiêu chí GAD",
+        "note": "N2=no: không thấy khó kiểm soát lo lắng → kiểm soát được → không đủ DSM-5 Criterion B → fail",
     },
 
     # TC-10: GAD — N3 không đủ

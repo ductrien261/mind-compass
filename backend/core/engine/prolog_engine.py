@@ -263,8 +263,8 @@ BACKWARD_QUESTIONS: Dict[str, Dict] = {
         "key": "n2",
         "type": "yesno",
         "text": "Bạn có thấy khó kiểm soát được những nỗi lo lắng của mình không?",
-        "stop_if": "yes",
-        "stop_reason": "Có thể kiểm soát lo lắng → không đủ tiêu chí GAD",
+        "stop_if": "no",
+        "stop_reason": "Kiểm soát được lo lắng → không đủ tiêu chí GAD (DSM-5 Criterion B)",
     },
     "n3": {
         "key": "n3",
@@ -628,8 +628,8 @@ def _verify_diagnosis(profile: str, known_answers: Dict[str, Any]) -> bool:
         return a1_or_a2 and a3_ok and a4_ok
 
     elif profile == "gad_stress_dominant":
-        # N1 phải yes, N2 phải no (không kiểm soát được), N3 multi ≥ 3, N4 yes
-        return yn("n1") and not yn("n2") and multi_pass("n3") and yn("n4")
+        # N1 phải yes, N2 phải yes (thấy KHÓ kiểm soát = DSM-5 Criterion B), N3 multi ≥3, N4 yes
+        return yn("n1") and yn("n2") and multi_pass("n3") and yn("n4")
 
     elif profile == "panic_disorder":
         # D1a, D1b, D2 đều yes, D4 multi ≥ 4
@@ -816,6 +816,40 @@ def run_backward_phase(profile: str, known_answers: Dict[str, Any], fuzzy_result
     print(f"\n[KẾT LUẬN] {profile_adv}")
     print(f"{'='*70}")
 
+    confirm_detail: List[Dict[str, Any]] = []
+    confirm_score = 0
+
+    for key in bw_flow:
+        q = BACKWARD_QUESTIONS.get(key)
+        if not q:
+            continue
+        ans = known_answers.get(key)
+        if ans is None:
+            continue
+
+        q_type = q.get("type", "yesno")
+        q_text = q.get("text", key)
+
+        if q_type == "yesno":
+            answer_str = str(ans)
+            stop_if = q.get("stop_if")
+            passed = (ans != stop_if) if stop_if else (ans == "yes")
+        else:  # multiselect
+            selected = ans if isinstance(ans, list) else []
+            passed = _eval_multiselect(key, selected, known_answers)
+            answer_str = "yes" if passed else "no"
+
+        if passed:
+            confirm_score += 1
+
+        confirm_detail.append({
+            "key":    key,
+            "text":   q_text,
+            "answer": answer_str,
+        })
+
+    confirm_total = len([k for k in bw_flow if BACKWARD_QUESTIONS.get(k)])
+
     return {
         "phase":            "complete",
         "profile":          final_profile,
@@ -823,4 +857,7 @@ def run_backward_phase(profile: str, known_answers: Dict[str, Any], fuzzy_result
         "profile_confirmed": verified,
         "profile_advice":   profile_adv,
         "dimensions":       dims,
+        "confirm_detail":   confirm_detail,
+        "confirm_score":    confirm_score,
+        "confirm_total":    confirm_total,
     }

@@ -298,7 +298,7 @@ Nhận toàn bộ câu trả lời, chạy Fuzzy Logic + Forward Chaining.
 ```json
 {
   "phase": "fuzzy_done",
-  "profile": "pure_depression",
+  "profile": "major_depression",
   "dimensions": {
     "depression": {
       "total_score": 24,
@@ -326,11 +326,11 @@ Nhận câu trả lời Yes/No, chạy Backward Chaining (SWI-Prolog) để xác
 **Request:**
 ```json
 {
-  "profile": "pure_depression",
-  "answers": {
+  "profile": "major_depression",
+  "known_answers": {
     "a1": "yes",
     "a2": "no",
-    "a3": "yes",
+    "a3": ["a3_b", "a3_d", "a3_e", "a3_f"],
     "a4": "yes"
   },
   "fuzzy_result": { ... }
@@ -341,11 +341,16 @@ Nhận câu trả lời Yes/No, chạy Backward Chaining (SWI-Prolog) để xác
 ```json
 {
   "phase": "complete",
-  "profile": "pure_depression",
+  "profile": "major_depression",
   "profile_verified": true,
+  "profile_advice": "MỨC ĐỘ NẶNG (Trầm cảm - MDD): ...",
   "confirm_score": 3,
   "confirm_total": 4,
-  "profile_advice": "MỨC ĐỘ NẶNG (Trầm cảm): Bạn đang đánh mất năng lượng...",
+  "confirm_detail": [
+    { "key": "a1", "text": "Bạn có bao giờ cảm thấy chán nản...", "answer": "yes" },
+    { "key": "a3", "text": "Trong giai đoạn đó, bạn có gặp...", "answer": "yes" },
+    { "key": "a4", "text": "Những triệu chứng này có gây ra...", "answer": "yes" }
+  ],
   "dimensions": { ... }
 }
 ```
@@ -359,34 +364,36 @@ File: `backend/core/knowledge_base/rules.pl`
 ### Forward Chaining — `candidate_profile/4`
 
 ```prolog
-%% Khủng hoảng toàn diện (D + A + S đều ≥ 30)
+%% Khủng hoảng toàn diện — cả 3 chiều đều nghiêm trọng
 candidate_profile(maladaptive_crisis, D10, A10, S10) :-
     D10 >= 30, A10 >= 30, S10 >= 30.
 
-%% Trầm cảm kèm lo âu (D ≥ 25 VÀ A ≥ 25)
-candidate_profile(mdd_anxious_distress, D10, A10, S10) :-
-    D10 >= 25, A10 >= 25,
+%% Trầm cảm nặng (MDD) — D rất cao, chưa đến crisis
+candidate_profile(major_depression, D10, A10, S10) :-
+    D10 >= 25,
     \+ candidate_profile(maladaptive_crisis, D10, A10, S10).
 
-%% GAD / Lo âu lan tỏa (S cao, D/A thấp)
+%% Lo âu Lan tỏa / GAD — S cao (≥20), D và A thấp (≤15)
 candidate_profile(gad_stress_dominant, D10, A10, S10) :-
-    S10 >= 25, D10 =< 15, A10 =< 15, ...
+    S10 >= 20, D10 =< 15, A10 =< 15,
+    \+ candidate_profile(maladaptive_crisis, D10, A10, S10),
+    \+ candidate_profile(panic_disorder, D10, A10, S10).
 ```
 
 ### Backward Chaining — `verify_diagnosis/1`
 
 ```prolog
-%% GAD: n2 phải là "no" (lo âu KHÔNG có nguồn cụ thể)
+%% GAD: N2 phải là "no" = người dùng KHÔNG kiểm soát được lo lắng
 verify_diagnosis(gad_stress_dominant) :-
     ask_symptom(n1),
-    ask_symptom_no(n2),    %← key: lo âu không từ sự kiện cụ thể
+    ask_symptom_no(n2),    %← n2="no": không kiểm soát được → đủ tiêu chí GAD
     ask_symptom(n3),
     ask_symptom(n4).
 
-%% MDD: (a1 HOẶC a2) VÀ a3 VÀ a4
+%% MDD: (A1 HOẶC A2) VÀ A3 (≥5 triệu chứng) VÀ A4 (suy giảm chức năng)
 ask_a1_or_a2 :- ask_symptom(a1), !.
 ask_a1_or_a2 :- ask_symptom(a2).
-verify_diagnosis(pure_depression) :-
+verify_diagnosis(major_depression) :-
     ask_a1_or_a2,
     ask_symptom(a3),
     ask_symptom(a4).
@@ -399,11 +406,10 @@ verify_diagnosis(pure_depression) :-
 | Profile | Tên đầy đủ | Điều kiện Forward Chaining |
 |---------|-----------|---------------------------|
 | `maladaptive_crisis` | Khủng hoảng toàn diện | D ≥ 30 **và** A ≥ 30 **và** S ≥ 30 |
-| `mdd_anxious_distress` | Trầm cảm kèm lo âu | D ≥ 25 **và** A ≥ 25 |
-| `panic_disorder` | Rối loạn hoảng sợ | A ≥ 25, D ≤ 15, S ≤ 20 |
-| `gad_stress_dominant` | Lo âu lan tỏa / GAD | S ≥ 25, D ≤ 15, A ≤ 15 |
-| `pure_depression` | Trầm cảm thuần | D ≥ 25, A < 25, S < 25 |
-| `social_anxiety` | Lo âu xã hội | A ≥ 20 **và** S ≥ 20 |
+| `major_depression` | Trầm cảm nặng (MDD) | D ≥ 25 (không phải crisis) |
+| `panic_disorder` | Rối loạn hoảng sợ | A ≥ 12, D ≤ 15, S ≤ 20 |
+| `gad_stress_dominant` | Lo âu lan tỏa / GAD | S ≥ 20, D ≤ 15, A ≤ 15 |
+| `social_anxiety` | Lo âu xã hội | A ≥ 10 **và** S ≥ 15 |
 | `low_risk` | Không có nguy cơ | D < 15 **và** A < 15 **và** S < 15 |
 
 ---
